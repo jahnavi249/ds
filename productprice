@@ -1,0 +1,44 @@
+import requests
+from bs4 import BeautifulSoup
+from price_parser import Price
+
+# List of websites to check for product price
+websites = [
+    {
+        'url': 'https://www.example1.com/product',
+        'selector': '.product-price'
+    },
+    {
+        'url': 'https://www.example2.com/product',
+        'selector': '.price-amount'
+    },
+    # Add more websites here
+]
+
+# Function to get product price from a website
+def get_price_from_website(website):
+    response = requests.get(website['url'])
+    soup = BeautifulSoup(response.text, 'html.parser')
+    price_element = soup.select_one(website['selector'])
+    if price_element:
+        price_string = price_element.text.strip()
+        price = Price(price_string)
+        return price.amount, price.currency
+    else:
+        return None
+
+# Function to find the lowest price of the product
+def find_lowest_price():
+    prices = []
+    for website in websites:
+        price = get_price_from_website(website)
+        if price:
+            prices.append(price)
+    if prices:
+        lowest_price = min(prices, key=lambda x: x[0])
+        print(f"The lowest price of the product is {lowest_price[0]} {lowest_price[1]}")
+    else:
+        print("Could not find any price information")
+
+# Call the function to find the lowest price
+find_lowest_price()
